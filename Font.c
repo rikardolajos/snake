@@ -95,6 +95,8 @@ void font_init(SDL_Texture* sprite_sheet)
 	symbols[41].segments = SEGMENT8 | SEGMENT10;
 	symbols[42].letter = '-';
 	symbols[42].segments = SEGMENT7 | SEGMENT9;
+	symbols[43].letter = ',';
+	symbols[43].segments = SEGMENT14;
 
 
 	/* Set up the sprites for the segments */
