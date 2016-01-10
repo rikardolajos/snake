@@ -11,6 +11,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 1
+
 #define MENU_N 4
 
 /* Main function */
@@ -213,6 +216,11 @@ int main(int argc, char* argv[])
 			}
 			font_render(temp, 50, 340 + i * 30, renderer);
 		}
+
+		/* Render version number */
+		char version[10] = { 0 };
+		sprintf(version, "VER,%d-%d", VERSION_MAJOR, VERSION_MINOR);
+		font_render(version, 570, 470, renderer);
 
 		SDL_RenderPresent(renderer);
 	}
