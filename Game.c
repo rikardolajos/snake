@@ -2,15 +2,10 @@
 #include "Snake.h"
 #include "Sprite.h"
 #include "Highscore.h"
+#include "xmath.h"
 
 #include <stdbool.h>
 #include <stdio.h>
-
-int mod(int a, int b)
-{
-	int r = a % b;
-	return r < 0 ? r + b : r;
-}
 
 int game_loop(indata* data)
 {
@@ -28,8 +23,13 @@ int game_loop(indata* data)
 
 	/* Initialize the snake */
 	snake_t snake;
-	init_snake(&snake, 275, 300, 750, 500, 25);
+	init_snake(&snake, 275, 300, 750, 500, 25, data->game_mode);
 	body_t* b;
+
+	/* Adventure mode start at speed 1 */
+	if (data->game_mode == 2) {
+		data->speed = 1;
+	}
 
 	int apple_x = 600;
 	int apple_y = 100;
@@ -87,9 +87,14 @@ int game_loop(indata* data)
 			/* Check for apple collision */
 			if (snake.body.x == apple_x && snake.body.y == apple_y) {
 				add_body_segment(&snake);
-				apple_x = 25 * (current_time % 30);
-				apple_y = 25 * (current_time % 20);
+				apple_x = 25 * (SDL_GetTicks() % 30);
+				apple_y = 25 * (SDL_GetTicks() % 20);
 				score += data->speed;
+				/* Adventure mode */
+				if (data->game_mode == 2) {
+					data->speed++;
+					if (data->speed == 16) data->speed = 1;
+				}
 				sprintf(title, "Snake -- Score: %d", score);
 				SDL_SetWindowTitle(window, title);
 			}
@@ -124,18 +129,25 @@ int game_loop(indata* data)
 
 	SDL_SetWindowTitle(window, "Snake");
 
-	if (!new_high_score(renderer, score))
+	if (!new_high_score(renderer, score, data->game_mode))
 		return 0;
 
 	return 1;
 }
 
-int speed_screen(SDL_Renderer* r, int* speed)
+int options_screen(SDL_Renderer* r, int* speed, int* game_mode)
 {
 	SDL_Event e;
 	bool running = true;
 
 	char temp[24];
+
+	int current_selection = 0;
+	char* menu[2];
+	menu[0] = calloc(24, sizeof(char));
+	menu[1] = calloc(24, sizeof(char));
+	sprintf(menu[0], "GAME MODE:");
+	sprintf(menu[1], "SPEED:");
 	
 	while (running) {
 		while (SDL_PollEvent(&e)) {
@@ -144,11 +156,38 @@ int speed_screen(SDL_Renderer* r, int* speed)
 			}
 
 			if (e.type == SDL_KEYDOWN) {
-				if (e.key.keysym.sym == SDLK_RIGHT) {
-					if ((*speed) < 15) (*speed)++;
-				} else if (e.key.keysym.sym == SDLK_LEFT) {
-					if ((*speed) > 1) (*speed)--;
-				} else if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_RETURN) {
+				if (current_selection == 0) {
+					if (e.key.keysym.sym == SDLK_RIGHT) {
+						if ((*game_mode) < 2) (*game_mode)++;
+					}
+					else if (e.key.keysym.sym == SDLK_LEFT) {
+						if ((*game_mode) > 0) (*game_mode)--;
+					}
+					else if (e.key.keysym.sym == SDLK_DOWN) {
+						current_selection = 1;
+					}
+					else if (e.key.keysym.sym == SDLK_UP) {
+						current_selection = 1;
+					}
+				} else {
+					if (e.key.keysym.sym == SDLK_RIGHT) {
+						if (*game_mode != 2) {
+							if ((*speed) < 15) (*speed)++;
+						}
+					}
+					else if (e.key.keysym.sym == SDLK_LEFT) {
+						if (*game_mode != 2) {
+							if ((*speed) > 1) (*speed)--;
+						}
+					}
+					else if (e.key.keysym.sym == SDLK_DOWN) {
+						current_selection = 0;
+					}
+					else if (e.key.keysym.sym == SDLK_UP) {
+						current_selection = 0;
+					}
+				}
+				if (e.key.keysym.sym == SDLK_ESCAPE || e.key.keysym.sym == SDLK_RETURN) {
 					running = false;
 				}
 			}
@@ -156,10 +195,44 @@ int speed_screen(SDL_Renderer* r, int* speed)
 
 		SDL_RenderClear(r);
 
-		font_render("SET THE SPEED FOR THE GAME", 50, 140, r);
-		font_render("IT WILL AFFECT YOUR SCORES", 50, 170, r);
-		sprintf(temp, "<%02d>", *speed);
-		font_render(temp, 325, 250, r);
+		font_render("OPTIONS", 290, 90, r);
+
+		/* Render menu */
+		char mode[24] = { 0 };
+		if (*game_mode == 0) {
+			sprintf(mode, "%s", "CLASSIC");
+		} else if (*game_mode == 1) {
+			sprintf(mode, "%s", "BORDERLESS");
+		} else if (*game_mode == 2) {
+			sprintf(mode, "%s", "ADVENTURE");
+		}
+
+		if (current_selection == 0) {
+			sprintf(temp, "%s <%s>", menu[0], mode);
+		}
+		else {
+			sprintf(temp, "%s  %s", menu[0], mode);
+		}
+		font_render(temp, 75, 340, r);
+
+		if (current_selection == 1) {
+			if (*game_mode == 2) {
+				sprintf(temp, "%s <->", menu[1]);
+			}
+			else {
+				sprintf(temp, "%s <%d>", menu[1], *speed);
+			}
+			
+		}
+		else {
+			if (*game_mode == 2) {
+				sprintf(temp, "%s ---", menu[1]);
+			}
+			else {
+				sprintf(temp, "%s  %d ", menu[1], *speed);
+			}
+		}
+		font_render(temp, 75, 340 + 30, r);
 
 		SDL_RenderPresent(r);
 	}
@@ -200,13 +273,13 @@ int pause_screen(SDL_Renderer* r)
 	return 1;
 }
 
-int new_high_score(SDL_Renderer* r, int score)
+int new_high_score(SDL_Renderer* r, int score, int game_mode)
 {
 	SDL_Event e;
 	bool running = true;
 	bool skip = false;
 
-	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
+	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	char temp[24];
 
 	int current_input = 0;
@@ -269,19 +342,19 @@ int new_high_score(SDL_Renderer* r, int score)
 	}
 
 	if (!skip) {
-		enter_highscore(score, name);
+		enter_highscore(score, name, game_mode);
 	}
 
 	return 1;
 }
 
-int high_score(SDL_Renderer* r)
+int high_score(SDL_Renderer* r, int game_mode)
 {
 	SDL_Event e;
 	bool running = true;
 
 	char list[256];
-	get_highscore(list);
+	get_highscore(list, game_mode);
 	int entries = 0;
 
 	/* Count the number of entries in the list */
@@ -305,6 +378,9 @@ int high_score(SDL_Renderer* r)
 		SDL_RenderClear(r);
 
 		font_render("HIGH SCORES", 230, 50, r);
+		if (game_mode == 0) font_render("-CLASSIC-", 255, 80, r);
+		if (game_mode == 1) font_render("-BORDERLESS-", 217, 80, r);
+		if (game_mode == 2) font_render("-ADVENTURE-", 230, 80, r);
 
 		char temp[16] = { 0 };
 		int score;

@@ -1,7 +1,11 @@
 #include "Snake.h"
+
+#include "xmath.h"
+
 #include <stdlib.h>
 
-void init_snake(snake_t* s, int x, int y, int field_width, int field_height, int tile_size)
+
+void init_snake(snake_t* s, int x, int y, int field_width, int field_height, int tile_size, int game_mode)
 {
 	body_t* b;
 
@@ -11,6 +15,7 @@ void init_snake(snake_t* s, int x, int y, int field_width, int field_height, int
 	s->field_width = field_width;
 	s->field_height = field_height;
 	s->tile_size = tile_size;
+	s->game_mode = game_mode;
 
 	/* First body segement */
 	b = malloc(sizeof(body_t));
@@ -68,18 +73,37 @@ bool move_forward(snake_t* s)
 	temp->x = s->body.x;
 	temp->y = s->body.y;
 
-	if (s->dir == 1) {
-		s->body.y -= s->tile_size;
+	/* Classic movement */
+	if (s->game_mode == 0) {
+		if (s->dir == 1) {
+			s->body.y -= s->tile_size;
+		}
+		else if (s->dir == 2) {
+			s->body.y += s->tile_size;
+		}
+		else if (s->dir == 3) {
+			s->body.x -= s->tile_size;
+		}
+		else if (s->dir == 4) {
+			s->body.x += s->tile_size;
+		}
 	}
-	else if (s->dir == 2) {
-		s->body.y += s->tile_size;
+	/* Borderless movement */
+	else {
+		if (s->dir == 1) {
+			s->body.y = mod(s->body.y - s->tile_size, s->field_height);
+		}
+		else if (s->dir == 2) {
+			s->body.y = mod(s->body.y + s->tile_size, s->field_height);
+		}
+		else if (s->dir == 3) {
+			s->body.x = mod(s->body.x - s->tile_size, s->field_width);
+		}
+		else if (s->dir == 4) {
+			s->body.x = mod(s->body.x + s->tile_size, s->field_width);
+		}
 	}
-	else if (s->dir == 3) {
-		s->body.x -= s->tile_size;
-	}
-	else if (s->dir == 4) {
-		s->body.x += s->tile_size;
-	}
+	
 
 	return check_collision(s);
 }

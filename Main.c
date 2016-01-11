@@ -6,6 +6,7 @@
 #include "Game.h"
 #include "Sprite.h"
 #include "Font.h"
+#include "xmath.h"
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -72,6 +73,9 @@ int main(int argc, char* argv[])
 
 	/* Main loop */
 	int speed = 5;		/* Variable for the speed setting */
+	int game_mode = 0;	/* Variable for game mode: 0 = classic
+												   1 = bordeless
+												   2 = adventure */
 
 	indata data;
 	data.window = window;
@@ -80,6 +84,7 @@ int main(int argc, char* argv[])
 	data.body = body_sprite;
 	data.apple = apple_sprite;
 	data.speed = speed;
+	data.game_mode = game_mode;
 
 	SDL_Event e;
 	bool exit = false;
@@ -91,7 +96,7 @@ int main(int argc, char* argv[])
 	menu[2] = calloc(24, sizeof(char));
 	menu[3] = calloc(24, sizeof(char));
 	sprintf(menu[0], "PLAY");
-	sprintf(menu[1], "SPEED");
+	sprintf(menu[1], "OPTIONS");
 	sprintf(menu[2], "HIGH SCORES");
 	sprintf(menu[3], "EXIT");
 
@@ -116,10 +121,10 @@ int main(int argc, char* argv[])
 						if (!game_loop(&data))
 							exit = true;
 					if (current_selection == 1)
-						if (!speed_screen(renderer, &(data.speed)))
+						if (!options_screen(renderer, &(data.speed), &(data.game_mode)))
 							exit = true;
 					if (current_selection == 2)
-						if (!high_score(renderer))
+						if (!high_score(renderer, data.game_mode))
 							exit = true;
 					if (current_selection == 3)
 						exit = true;
@@ -219,7 +224,7 @@ int main(int argc, char* argv[])
 
 		/* Render version number */
 		char version[10] = { 0 };
-		sprintf(version, "VER,%d-%d", VERSION_MAJOR, VERSION_MINOR);
+		sprintf(version, "VER %d,%d", VERSION_MAJOR, VERSION_MINOR);
 		font_render(version, 570, 470, renderer);
 
 		SDL_RenderPresent(renderer);

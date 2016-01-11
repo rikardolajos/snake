@@ -17,9 +17,10 @@ struct snake_t {
 	int		field_width;
 	int		field_height;
 	int		tile_size;
+	int		game_mode;
 };
 
-void init_snake(snake_t* s, int x, int y, int field_width, int field_height, int tile_size);
+void init_snake(snake_t* s, int x, int y, int field_width, int field_height, int tile_size, int game_mode);
 void set_direction(snake_t* s, int dir);
 static bool check_collision(snake_t* s);
 bool move_forward(snake_t* s);
