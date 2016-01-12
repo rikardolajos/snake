@@ -34,8 +34,7 @@ int game_loop(indata* data)
 	int apple_x = 600;
 	int apple_y = 100;
 
-	int dir_queue[2] = { 0, 0 };
-	int queued = 0;
+	int new_dir = 4; /* Start direction is to the right */
 
 	unsigned int last_time = 0, current_time;
 
@@ -45,15 +44,15 @@ int game_loop(indata* data)
 				return 0;
 			}
 
-			if (e.type == SDL_KEYDOWN && queued < 2) {
+			if (e.type == SDL_KEYDOWN) {
 				if (e.key.keysym.sym == SDLK_UP && snake.dir != 2)
-					dir_queue[queued++] = 1;
+					new_dir = 1;
 				else if (e.key.keysym.sym == SDLK_DOWN && snake.dir != 1)
-					dir_queue[queued++] = 2;
+					new_dir = 2;
 				else if (e.key.keysym.sym == SDLK_LEFT && snake.dir != 4)
-					dir_queue[queued++] = 3;
+					new_dir = 3;
 				else if (e.key.keysym.sym == SDLK_RIGHT && snake.dir != 3)
-					dir_queue[queued++] = 4;
+					new_dir = 4;
 				else if (e.key.keysym.sym == SDLK_ESCAPE) {
 					int t = pause_screen(renderer);
 					if (t == 0) {
@@ -63,8 +62,6 @@ int game_loop(indata* data)
 						return 1;
 					}
 				}
-					
-
 			}
 		}
 
@@ -72,10 +69,7 @@ int game_loop(indata* data)
 		current_time = SDL_GetTicks();
 		if (current_time > last_time + (500 / data->speed)) {
 
-			if (queued > 0) {
-				snake.dir = dir_queue[queued - 1];
-				queued--;
-			}
+			snake.dir = new_dir;
 
 			if (!move_forward(&snake)) {
 				SDL_Delay(1000);
