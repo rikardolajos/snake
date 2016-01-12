@@ -307,10 +307,10 @@ int new_high_score(SDL_Renderer* r, int score, int game_mode)
 					if (current_input > 0) current_input--;
 					current_letter = 0; // Maybe should find the current letter instead
 				} else if (e.key.keysym.sym == SDLK_UP) {
-					current_letter = mod(current_letter - 1, 37);
+					current_letter = mod(current_letter - 1, strlen(alphabet));
 					name[current_input] = alphabet[current_letter];
 				} else if (e.key.keysym.sym == SDLK_DOWN) {
-					current_letter = mod(current_letter + 1, 37);
+					current_letter = mod(current_letter + 1, strlen(alphabet));
 					name[current_input] = alphabet[current_letter];
 				}
 			}
