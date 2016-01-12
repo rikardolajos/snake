@@ -20,7 +20,7 @@ void enter_highscore(int score, char name[], int game_mode)
 	strcat(buffer, "Connection: close\r\n");
 	strcat(buffer, "Accept: */*\r\n");
 	strcat(buffer, "Content-Type: application/x-www-form-urlencoded\r\n");
-	strcat(buffer, "Content-Length: 28\r\n\r\n");
+	strcat(buffer, "Content-Length: 27\r\n\r\n");
 	strcat(buffer, mode_s);
 	strcat(buffer, "&");
 	strcat(buffer, score_s);
@@ -66,7 +66,7 @@ void get_highscore(char* list, int game_mode)
 	strcat(buffer, "Connection: close\r\n");
 	strcat(buffer, "Accept: */*\r\n");
 	strcat(buffer, "Content-Type: application/x-www-form-urlencoded\r\n");
-	strcat(buffer, "Content-Length: 15\r\n\r\n");
+	strcat(buffer, "Content-Length: 12\r\n\r\n");
 	strcat(buffer, mode);
 	strcat(buffer, "&");
 	strcat(buffer, get);
@@ -88,7 +88,7 @@ void get_highscore(char* list, int game_mode)
 
 	int d = SDLNet_TCP_Send(tcp, (void*)buffer, strlen(buffer));
 	if (d != strlen(buffer)) {
-		fprintf(stderr, "Error while sending highscore via TCP: sent %d chars.\n", d);
+		fprintf(stderr, "Error while sending highscore via TCP: sent %d of %d chars.\n", d, strlen(buffer));
 	}
 
 	/* Wait for the reply */
